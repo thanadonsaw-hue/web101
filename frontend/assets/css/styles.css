@@ -348,6 +348,30 @@ input[type="checkbox"] {
   background: var(--danger-hover);
 }
 
+/* ─── Outline / Card-style button (green) ─────── */
+.button-outline {
+  background: #fff;
+  color: #27ae60;
+  border: 2px solid #27ae60;
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  min-width: 110px;
+  text-align: center;
+  white-space: normal;
+  flex-direction: column;
+  line-height: 1.4;
+  gap: 4px;
+}
+
+.button-outline:hover {
+  background: #f0fdf4;
+}
+
+.button-outline .btn-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
 /* Legacy support */
 .button.danger { background-color: var(--danger); color: #fff; }
 
