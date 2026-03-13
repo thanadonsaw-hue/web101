@@ -399,7 +399,6 @@ input[type="checkbox"] {
   background: #fff1f0;
 }
 
-/* wrapper ให้ปุ่มอยู่แถวเดียวกัน */
 .btn-row {
   display: flex;
   flex-wrap: nowrap;
