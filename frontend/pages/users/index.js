@@ -15,8 +15,10 @@ const loadData = async () => {
         <td>${user.age}</td>
         <td>${user.gender}</td>
         <td>
-          <a href="../register/?id=${user.id}"><button class="button button-secondary">แก้ไข</button></a>
-          <button class="button button-danger delete" data-id="${user.id}">ลบ</button>
+          <div class="btn-row">
+            <a href="../register/?id=${user.id}"><button class="button button-outline-edit">✏️ แก้ไข</button></a>
+            <button class="button button-outline-danger delete" data-id="${user.id}">🗑️ ลบ</button>
+          </div>
         </td>
       </tr>`
     }
