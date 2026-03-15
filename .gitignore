@@ -1,0 +1,18 @@
+# ไฟล์ที่ติดตั้งผ่าน npm (หนักมาก ไม่ต้องเอาขึ้น)
+node_modules/
+
+# ไฟล์เก็บความลับ เช่น รหัสผ่าน Database
+
+
+# ไฟล์ Log ต่างๆ
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ไฟล์ระบบของ Windows/Mac
+Thumbs.db
+.DS_Store
+
+# โฟลเดอร์ที่ได้จากการ Build (ถ้ามี)
+dist/
+build/

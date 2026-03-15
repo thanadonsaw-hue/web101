@@ -2,7 +2,8 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>Shop - PerX Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order History - PerX Shop</title>
     <link rel="stylesheet" href="../../assets/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -11,12 +12,14 @@
         <div class="brand" onclick="location.href='../../index.html'" style="cursor:pointer">
             <h2 class="brand-title">PerX Shop</h2>
         </div>
+        
         <div class="nav-menu">
             <a href="../../index.html">หน้าหลัก</a>
-            <a href="index.html" class="active">ร้านค้า</a>
+            <a href="../shop/index.html">ร้านค้า</a>
         </div>
+
         <div class="nav-right-group">
-            <div class="cart-wrapper" onclick="toggleCart()">
+            <div class="cart-wrapper" onclick="location.href='../shop/index.html'">
                 <button class="icon-btn">
                     <i class="fa-solid fa-cart-shopping"></i>
                     <span id="cart-count" class="cart-badge">0</span>
@@ -26,29 +29,18 @@
         </div>
     </nav>
 
-    <div id="toast-msg" class="alert-toast"></div>
-
-    <div id="cartModal" class="cart-modal">
-        <div class="cart-header">
-            <h2 style="font-size: 1.2rem;">🛒 ตะกร้าสินค้า</h2>
-            <button class="cart-close" onclick="toggleCart()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div id="cart-items"></div>
-        <div class="cart-footer">
-            <div class="cart-summary-line">
-                <span>ยอดรวมทั้งหมด</span>
-                <span id="cart-total" style="color: #e63946; font-weight: 700;">0</span>
-            </div>
-            <button class="checkout-btn" onclick="checkout()">ยืนยันการสั่งซื้อ</button>
+    <div class="container">
+        <h2 class="page-title" style="margin-bottom: 20px;">ประวัติการสั่งซื้อของคุณ</h2>
+        <div id="order-list">
+            <p style="text-align:center; color:#888;">กำลังโหลดข้อมูล...</p>
         </div>
     </div>
-
-    <div class="grid" id="products"></div>
 
     <div id="loginModal" class="modal-overlay">
         <div class="auth-modal">
             <button class="close-modal" onclick="closeModal('loginModal')">✕</button>
-            <h2>เข้าสู่ระบบ</h2>
+            <h2 style="margin-bottom: 25px;">เข้าสู่ระบบ</h2>
+            
             <div class="modal-input-group">
                 <input type="text" id="login-username" placeholder="ชื่อผู้ใช้">
             </div>
@@ -56,8 +48,11 @@
                 <input type="password" id="login-password" placeholder="รหัสผ่าน">
                 <i class="fa-solid fa-eye modal-toggle-password" id="login-eye" onclick="togglePassword('login-password', 'login-eye')"></i>
             </div>
+
             <div id="login-alert" class="alert-box error"></div>
+
             <button class="modal-btn-submit" onclick="modalLogin()">เข้าสู่ระบบ</button>
+            
             <p class="modal-footer-text">
                 ยังไม่มีบัญชี? <a href="#" onclick="switchModal('loginModal', 'registerModal')">สมัครสมาชิกที่นี่</a>
             </p>
@@ -67,7 +62,8 @@
     <div id="registerModal" class="modal-overlay">
         <div class="auth-modal">
             <button class="close-modal" onclick="closeModal('registerModal')">✕</button>
-            <h2>สร้างบัญชีใหม่</h2>
+            <h2 style="margin-bottom: 25px;">สร้างบัญชีใหม่</h2>
+            
             <div class="modal-input-group">
                 <input type="text" id="reg-username" placeholder="ชื่อผู้ใช้ (Username)">
             </div>
@@ -75,17 +71,34 @@
                 <input type="password" id="reg-password" placeholder="รหัสผ่าน (Password)">
                 <i class="fa-solid fa-eye modal-toggle-password" id="reg-eye" onclick="togglePassword('reg-password', 'reg-eye')"></i>
             </div>
+            
+            <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 15px 0;">
+            
             <div class="modal-input-group">
                 <input type="text" id="reg-firstname" placeholder="ชื่อจริง">
             </div>
             <div class="modal-input-group">
                 <input type="text" id="reg-lastname" placeholder="นามสกุล">
             </div>
+
             <div id="reg-alert" class="alert-box"></div>
+
             <button class="modal-btn-submit" onclick="modalRegister()">สมัครสมาชิก</button>
+            
             <p class="modal-footer-text">
                 มีบัญชีอยู่แล้ว? <a href="#" onclick="switchModal('registerModal', 'loginModal')">เข้าสู่ระบบ</a>
             </p>
+        </div>
+    </div>
+
+    <div id="cancelModal" class="modal-overlay">
+        <div class="auth-modal" style="width: 360px;">
+            <h2>ยกเลิกคำสั่งซื้อ</h2>
+            <p style="margin-bottom: 25px; color: #6b7280; font-size: 14px;">คุณแน่ใจหรือไม่ว่าต้องการยกเลิกคำสั่งซื้อนี้?<br>หากยกเลิกแล้วจะไม่สามารถย้อนกลับได้</p>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeCancelModal()" style="flex: 1; padding: 12px; border: none; border-radius: 8px; background: #f3f4f6; color: #374151; font-weight: 600; cursor: pointer;">ปิดหน้าต่าง</button>
+                <button onclick="executeCancelOrder()" style="flex: 1; padding: 12px; border: none; border-radius: 8px; background: #e63946; color: white; font-weight: 600; cursor: pointer;">ยืนยันยกเลิก</button>
+            </div>
         </div>
     </div>
 
