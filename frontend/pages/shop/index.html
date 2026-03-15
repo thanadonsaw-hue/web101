@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Shop - PerX Shop</title>
+    <link rel="stylesheet" href="../../assets/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .cart-modal {
+            display: none; position: fixed; right: 0; top: 0; width: 400px;
+            height: 100%; background: #ffffff; border-left: 1px solid #e5e7eb;
+            padding: 25px; z-index: 2000; box-shadow: -10px 0 30px rgba(0,0,0,0.05);
+            flex-direction: column;
+        }
+        .cart-modal.active { display: flex; }
+        .cart-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #f3f4f6;
+        }
+        .cart-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #6b7280; }
+        #cart-items { flex: 1; overflow-y: auto; }
+        .cart-item {
+            display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #f9fafb;
+        }
+        .cart-item img {
+            width: 60px; height: 60px; object-fit: contain; border-radius: 8px; border: 1px solid #f3f4f6;
+        }
+        .cart-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid #f3f4f6; }
+        .cart-summary-line { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1rem; }
+        .checkout-btn {
+            width: 100%; padding: 15px; background: #e63946; color: white;
+            border: none; border-radius: 8px; font-weight: 700; font-size: 1rem;
+            cursor: pointer; transition: 0.3s;
+        }
+        .checkout-btn:hover { background: #b91c1c; transform: translateY(-2px); }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px); z-index: 3000;
+            justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .auth-modal {
+            background: #ffffff; width: 400px; padding: 40px; border-radius: 20px;
+            position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.15); text-align: center;
+            transform: translateY(-20px); transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .auth-modal { transform: translateY(0); }
+        .close-modal {
+            position: absolute; right: 20px; top: 20px; background: none; border: none;
+            font-size: 1.5rem; cursor: pointer; color: #9ca3af; transition: 0.2s;
+        }
+        .close-modal:hover { color: #e63946; }
+        
+        .modal-input-group { position: relative; margin-bottom: 15px; text-align: left; }
+        .modal-input-group input {
+            width: 100%; padding: 12px 40px 12px 15px; border: 1px solid #d1d5db;
+            border-radius: 8px; font-size: 14px; font-family: 'Kanit', sans-serif;
+            outline: none; box-sizing: border-box;
+        }
+        .modal-input-group input:focus { border-color: #e63946; }
+        .modal-toggle-password {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            cursor: pointer; color: #6b7280; font-size: 16px;
+        }
+        .modal-toggle-password:hover { color: #e63946; }
+
+        .alert-box {
+            font-size: 13px; margin-bottom: 15px; display: none; padding: 10px;
+            border-radius: 8px; text-align: left;
+        }
+        .error { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; }
+        .success { color: #059669; background: #ecfdf5; border: 1px solid #a7f3d0; }
+
+        .alert-toast {
+            display: none; position: fixed; top: 20px; right: 20px;
+            padding: 15px 25px; border-radius: 8px; color: white;
+            z-index: 9999; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .toast-success { background: #10b981; }
+        .toast-error { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand" onclick="location.href='../../index.html'" style="cursor:pointer">
+            <h2 class="brand-title">PerX Shop</h2>
+        </div>
+        
+        <div class="nav-menu">
+            <a href="../../index.html">หน้าหลัก</a>
+            <a href="index.html" class="active">ร้านค้า</a>
+        </div>
+
+        <div class="nav-right-group">
+            <div class="cart-wrapper" onclick="toggleCart()">
+                <button class="icon-btn">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span id="cart-count" class="cart-badge">0</span>
+                </button>
+            </div>
+            <div id="auth-section" class="user-menu-container"></div>
+        </div>
+    </nav>
+
+    <div id="toast-msg" class="alert-toast"></div>
+
+    <div id="cartModal" class="cart-modal">
+        <div class="cart-header">
+            <h2 style="font-size: 1.2rem;">🛒 ตะกร้าสินค้า</h2>
+            <button class="cart-close" onclick="toggleCart()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="cart-items"></div>
+        <div class="cart-footer">
+            <div class="cart-summary-line">
+                <span>ยอดรวมทั้งหมด</span>
+                <span id="cart-total" style="color: #e63946; font-weight: 700;">0</span>
+            </div>
+            <button class="checkout-btn" onclick="checkout()">ยืนยันการสั่งซื้อ</button>
+        </div>
+    </div>
+
+    <div class="grid" id="products"></div>
+
+    <div id="loginModal" class="modal-overlay">
+        <div class="auth-modal">
+            <button class="close-modal" onclick="closeModal('loginModal')"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-bottom: 25px;">เข้าสู่ระบบ</h2>
+            
+            <div class="modal-input-group">
+                <input type="text" id="login-username" placeholder="ชื่อผู้ใช้">
+            </div>
+            <div class="modal-input-group">
+                <input type="password" id="login-password" placeholder="รหัสผ่าน">
+                <i class="fa-solid fa-eye modal-toggle-password" id="login-eye" onclick="togglePassword('login-password', 'login-eye')"></i>
+            </div>
+
+            <div id="login-alert" class="alert-box error"></div>
+
+            <button class="hero-btn" onclick="modalLogin()" style="width:100%; border-radius:8px; padding: 12px; margin-top: 10px; border: none; background: #e63946; color: white; cursor: pointer; font-family: 'Kanit'; font-weight: bold;">เข้าสู่ระบบ</button>
+            
+            <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">
+                ยังไม่มีบัญชี? <a href="#" onclick="switchModal('loginModal', 'registerModal')" style="color:#e63946; text-decoration:none; font-weight: 600;">สมัครสมาชิกที่นี่</a>
+            </p>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal-overlay">
+        <div class="auth-modal">
+            <button class="close-modal" onclick="closeModal('registerModal')"><i class="fa-solid fa-xmark"></i></button>
+            <h2 style="margin-bottom: 25px;">สร้างบัญชีใหม่</h2>
+            
+            <div class="modal-input-group">
+                <input type="text" id="reg-username" placeholder="ชื่อผู้ใช้ (Username)">
+            </div>
+            <div class="modal-input-group">
+                <input type="password" id="reg-password" placeholder="รหัสผ่าน (Password)">
+                <i class="fa-solid fa-eye modal-toggle-password" id="reg-eye" onclick="togglePassword('reg-password', 'reg-eye')"></i>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 15px 0;">
+            
+            <div class="modal-input-group">
+                <input type="text" id="reg-firstname" placeholder="ชื่อจริง">
+            </div>
+            <div class="modal-input-group">
+                <input type="text" id="reg-lastname" placeholder="นามสกุล">
+            </div>
+
+            <div id="reg-alert" class="alert-box"></div>
+
+            <button class="hero-btn" onclick="modalRegister()" style="width:100%; border-radius:8px; padding: 12px; margin-top: 10px; border: none; background: #e63946; color: white; cursor: pointer; font-family: 'Kanit'; font-weight: bold;">สมัครสมาชิก</button>
+            
+            <p style="margin-top: 20px; font-size: 14px; color: #6b7280;">
+                มีบัญชีอยู่แล้ว? <a href="#" onclick="switchModal('registerModal', 'loginModal')" style="color:#e63946; text-decoration:none; font-weight: 600;">เข้าสู่ระบบ</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    <script>
+        const url = 'http://localhost:8000'
+        const user = JSON.parse(localStorage.getItem('user'))
+        let cart = JSON.parse(localStorage.getItem('cart')) || []
+
+        const toggleMenu = () => {
+            const dropdown = document.getElementById('myDropdown')
+            if (dropdown) dropdown.classList.toggle('show')
+        }
+
+        const logout = () => {
+            localStorage.clear()
+            location.href = '../../index.html'
+        }
+
+        const showToast = (message, isSuccess) => {
+            const toast = document.getElementById('toast-msg')
+            toast.innerText = message
+            toast.className = 'alert-toast ' + (isSuccess ? 'toast-success' : 'toast-error')
+            toast.style.display = 'block'
+            setTimeout(() => { toast.style.display = 'none' }, 2500)
+        }
+
+        const updateUI = () => {
+            const section = document.getElementById('auth-section')
+            if (user) {
+                section.innerHTML = `
+                <div class="user-menu-container">
+                    <button onclick="toggleMenu()" class="icon-btn">
+                        <i class="fa-solid fa-circle-user"></i>
+                    </button>
+                    <div id="myDropdown" class="dropdown-content">
+                        <div style="padding: 10px 20px; font-size: 12px; color: #999; border-bottom: 1px solid #f3f4f6;">
+                            ผู้ใช้: ${user.username}
+                        </div>
+                        ${user.role === 'admin' ? '<a href="../admin/index.html">หน้าแอดมิน</a>' : ''}
+                        <a href="../../history.html">ประวัติการสั่งซื้อ</a>
+                        <button onclick="logout()" class="logout-btn">ออกจากระบบ</button>
+                    </div>
+                </div>`
+            } else {
+                section.innerHTML = `
+                <button class="icon-btn" onclick="openModal('loginModal')">
+                    <i class="fa-regular fa-circle-user"></i>
+                </button>`
+            }
+            updateCartUI()
+        }
+
+        const loadProducts = async () => {
+            try {
+                const res = await axios.get(`${url}/products`)
+                document.getElementById('products').innerHTML = res.data.map(p => {
+                    const imgSrc = (p.image_url && p.image_url !== 'Logo(2).png') 
+                        ? `${url}/uploads/${p.image_url}` 
+                        : '../../assets/images/Logo(2).png'
+                    const safeName = p.name.replace(/'/g, "\\'")
+                    
+                    return `
+                    <div class="card">
+                        <div class="card-icon"><img src="${imgSrc}"></div>
+                        <h3>${p.name}</h3>
+                        <p class="price">${p.price.toLocaleString()} THB</p>
+                        <p class="stock">คงเหลือ: ${p.stock}</p>
+                        <button class="btn-buy" ${p.stock <= 0 ? 'disabled' : ''} onclick="addToCart(${p.id}, '${safeName}', ${p.price}, '${imgSrc}')">
+                            ${p.stock > 0 ? 'เพิ่มลงตะกร้า' : 'ของหมด'}
+                        </button>
+                    </div>`
+                }).join('')
+            } catch (error) {
+                console.error(error)
+            }
+        }
+
+        const toggleCart = () => {
+            document.getElementById('cartModal').classList.toggle('active')
+        }
+
+        const addToCart = (id, name, price, img) => {
+            if (!user) {
+                openModal('loginModal')
+                return
+            }
+            const existing = cart.find(item => item.id === id)
+            if (existing) {
+                existing.quantity += 1
+            } else {
+                cart.push({ id, name, price, img, quantity: 1 })
+            }
+            saveCart()
+            updateCartUI()
+            
+            // ทำให้ตะกร้าเด้งขึ้นมาเลยตอนกดเพิ่มสินค้า
+            document.getElementById('cartModal').classList.add('active')
+        }
+
+        const removeFromCart = (id) => {
+            cart = cart.filter(item => item.id !== id)
+            saveCart()
+            updateCartUI()
+        }
+
+        const saveCart = () => {
+            localStorage.setItem('cart', JSON.stringify(cart))
+        }
+
+        const updateCartUI = () => {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0)
+            document.getElementById('cart-count').innerText = count
+            
+            let total = 0
+            document.getElementById('cart-items').innerHTML = cart.map(item => {
+                total += item.price * item.quantity
+                return `
+                <div class="cart-item">
+                    <img src="${item.img}">
+                    <div style="flex: 1;">
+                        <div style="font-size: 14px; font-weight: 500; margin-bottom: 2px;">${item.name}</div>
+                        <div style="color: #6b7280; font-size: 13px;">${item.price.toLocaleString()} THB</div>
+                        <div style="font-size: 13px; font-weight: 600;">จำนวน: ${item.quantity}</div>
+                    </div>
+                    <button onclick="removeFromCart(${item.id})" style="background: none; border: none; color: #9ca3af; cursor: pointer;"><i class="fa-solid fa-trash-can"></i></button>
+                </div>`
+            }).join('')
+            document.getElementById('cart-total').innerText = total.toLocaleString() + ' THB'
+        }
+
+        const checkout = async () => {
+            if (!user) return
+            if (cart.length === 0) {
+                showToast('ยังไม่มีสินค้าในตะกร้าครับ', false)
+                return
+            }
+            
+            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+            
+            try {
+                await axios.post(`${url}/orders`, {
+                    userId: user.id,
+                    cartItems: cart,
+                    totalPrice: totalPrice
+                })
+                
+                showToast('สั่งซื้อสำเร็จ', true)
+                cart = []
+                saveCart()
+                updateCartUI()
+                loadProducts()
+                
+                setTimeout(() => {
+                    location.href = '../../history.html'
+                }, 2000)
+
+            } catch (error) {
+                showToast('เกิดข้อผิดพลาดในการสั่งซื้อ', false)
+                console.error(error)
+            }
+        }
+
+        const openModal = (modalId) => {
+            document.getElementById(modalId).classList.add('active')
+            clearAlerts()
+        }
+
+        const closeModal = (modalId) => {
+            document.getElementById(modalId).classList.remove('active')
+        }
+
+        const switchModal = (closeId, openId) => {
+            closeModal(closeId)
+            setTimeout(() => { openModal(openId) }, 200)
+        }
+
+        const clearAlerts = () => {
+            document.getElementById('login-alert').style.display = 'none'
+            document.getElementById('reg-alert').style.display = 'none'
+        }
+
+        const togglePassword = (inputId, iconId) => {
+            const input = document.getElementById(inputId)
+            const icon = document.getElementById(iconId)
+            if (input.type === 'password') {
+                input.type = 'text'
+                icon.classList.remove('fa-eye')
+                icon.classList.add('fa-eye-slash')
+            } else {
+                input.type = 'password'
+                icon.classList.remove('fa-eye-slash')
+                icon.classList.add('fa-eye')
+            }
+        }
+
+        const modalLogin = async () => {
+            const username = document.getElementById('login-username').value
+            const password = document.getElementById('login-password').value
+            const alertBox = document.getElementById('login-alert')
+            alertBox.style.display = 'none'
+
+            if (!username || !password) {
+                alertBox.innerText = 'กรุณากรอกข้อมูลให้ครบถ้วน'
+                alertBox.className = 'alert-box error'
+                alertBox.style.display = 'block'
+                return
+            }
+
+            try {
+                const res = await axios.post(`${url}/login`, { username, password })
+                if (res.data && res.data.user) {
+                    localStorage.setItem('user', JSON.stringify(res.data.user))
+                    location.reload()
+                }
+            } catch (error) {
+                alertBox.innerText = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
+                alertBox.className = 'alert-box error'
+                alertBox.style.display = 'block'
+            }
+        }
+
+        const modalRegister = async () => {
+            const username = document.getElementById('reg-username').value
+            const password = document.getElementById('reg-password').value
+            const firstname = document.getElementById('reg-firstname').value
+            const lastname = document.getElementById('reg-lastname').value
+            const alertBox = document.getElementById('reg-alert')
+            alertBox.style.display = 'none'
+
+            if (!username || !password || !firstname || !lastname) {
+                alertBox.innerText = 'กรุณากรอกข้อมูลให้ครบถ้วน'
+                alertBox.className = 'alert-box error'
+                alertBox.style.display = 'block'
+                return
+            }
+
+            try {
+                const res = await axios.post(`${url}/register`, { username, password, firstname, lastname })
+                if (res.data.success) {
+                    alertBox.innerText = 'สมัครสมาชิกสำเร็จ! กำลังสลับไปหน้าเข้าสู่ระบบ...'
+                    alertBox.className = 'alert-box success'
+                    alertBox.style.display = 'block'
+                    setTimeout(() => { switchModal('registerModal', 'loginModal') }, 2000)
+                }
+            } catch (error) {
+                alertBox.innerText = (error.response?.data?.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก')
+                alertBox.className = 'alert-box error'
+                alertBox.style.display = 'block'
+            }
+        }
+
+        const loginPassInput = document.getElementById('login-password')
+        if (loginPassInput) {
+            loginPassInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') modalLogin()
+            })
+        }
+        
+        const regLastnameInput = document.getElementById('reg-lastname')
+        if (regLastnameInput) {
+            regLastnameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') modalRegister()
+            })
+        }
+
+        window.onclick = (event) => {
+            if (event.target.classList.contains('modal-overlay')) {
+                closeModal(event.target.id)
+            }
+            if (!event.target.closest('.user-menu-container') && !event.target.closest('.icon-btn') && !event.target.closest('.modal-overlay')) {
+                const dropdowns = document.getElementsByClassName('dropdown-content')
+                for (let d of dropdowns) { d.classList.remove('show') }
+            }
+        }
+
+        window.onload = () => {
+            updateUI()
+            loadProducts()
+        }
+    </script>
+</body>
+</html>
