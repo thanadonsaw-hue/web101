@@ -130,7 +130,7 @@ const modalRegister = async () => {
   try {
     const res = await api.auth.register({ username, password, firstname, lastname })
     if (res.data.success) {
-      alertBox.innerText = 'สมัครสมาชิกสำเร็จ! กำลังสลับ...'
+      alertBox.innerText = 'สมัครสมาชิกสำเร็จ!'
       alertBox.className = 'alert-box success'
       alertBox.style.display = 'block'
       setTimeout(() => { switchModal('registerModal', 'loginModal') }, 2000)

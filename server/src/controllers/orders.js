@@ -1,4 +1,5 @@
 const { create, findAll, findByUserId, updateStatus, findItemsByOrderId } = require('../models/orders')
+const { getConnection } = require('../config/db')
 
 const getAll = async (req, res, next) => {
   try {
@@ -30,10 +31,34 @@ const createOrder = async (req, res, next) => {
 const updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body
-    const result = await updateStatus(req.params.id, status)
+    const orderId = req.params.id
+
+    const db = await getConnection()
+
+    const [rows] = await db.query('SELECT status FROM orders WHERE id = ?', [orderId])
+    
+    if (rows && rows.length > 0) {
+      const currentStatus = rows[0].status
+
+      if (status === 'cancelled' && currentStatus !== 'cancelled') {
+        const items = await findItemsByOrderId(orderId)
+        
+        if (items && items.length > 0) {
+          for (const item of items) {
+            await db.query(
+              'UPDATE products SET stock = stock + ? WHERE id = ?',
+              [item.quantity, item.product_id]
+            )
+          }
+        }
+      }
+    }
+
+    const result = await updateStatus(orderId, status)
     res.json({ message: 'อัปเดตสถานะสำเร็จ', data: result })
   } catch (error) {
-    next(error)
+    console.error("Update Status Error:", error)
+    res.status(500).json({ error: 'ไม่สามารถอัปเดตสถานะได้' })
   }
 }
 

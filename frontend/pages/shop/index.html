@@ -2,14 +2,14 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>Shop - PerX Shop</title>
+    <title>Shop - TanX Shop</title>
     <link rel="stylesheet" href="../../assets/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="brand" onclick="location.href='../../index.html'" style="cursor:pointer">
-            <h2 class="brand-title">PerX Shop</h2>
+            <h2 class="brand-title">TanX Shop</h2>
         </div>
         <div class="nav-menu">
             <a href="../../index.html">หน้าหลัก</a>
@@ -43,6 +43,19 @@
         </div>
     </div>
 
+    <div class="category-filter">
+        <button class="filter-btn active" onclick="filterProducts('all', this)">ทั้งหมด</button>
+        <button class="filter-btn" onclick="filterProducts('monitor', this)">จอภาพ</button>
+        <button class="filter-btn" onclick="filterProducts('mouse', this)">เมาส์</button>
+        <button class="filter-btn" onclick="filterProducts('keyboard', this)">คีย์บอร์ด</button>
+        <button class="filter-btn" onclick="filterProducts('headset', this)">หูฟัง</button>
+        <button class="filter-btn" onclick="filterProducts('vga', this)">การ์ดจอ</button>
+        <button class="filter-btn" onclick="filterProducts('cpu', this)">ซีพียู</button>
+        <button class="filter-btn" onclick="filterProducts('notebook', this)">โน้ตบุ๊ก</button>
+    </div>
+
+    <div id="pagination" class="pagination-container" style="margin-top: 0; margin-bottom: 25px;"></div>
+    
     <div class="grid" id="products"></div>
 
     <div id="loginModal" class="modal-overlay">
