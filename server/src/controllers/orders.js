@@ -1,7 +1,7 @@
-const { create, findAll, findByUserId, updateStatus, findItemsByOrderId } = require('../models/orders')
+const { create,findAll,findByUserId,updateStatus,findItemsByOrderId } = require('../models/orders')
 const { getConnection } = require('../config/db')
 
-const getAll = async (req, res, next) => {
+const getAll = async (req,res,next) => {
   try {
     const orders = await findAll()
     res.json(orders)
@@ -10,7 +10,7 @@ const getAll = async (req, res, next) => {
   }
 }
 
-const getByUserId = async (req, res, next) => {
+const getByUserId = async (req,res,next) => {
   try {
     const orders = await findByUserId(req.params.userId)
     res.json(orders)
@@ -19,7 +19,7 @@ const getByUserId = async (req, res, next) => {
   }
 }
 
-const createOrder = async (req, res, next) => {
+const createOrder = async (req,res,next) => {
   try {
     const result = await create(req.body)
     res.json({ message: 'บันทึกคำสั่งซื้อสำเร็จ', data: result })
@@ -28,7 +28,7 @@ const createOrder = async (req, res, next) => {
   }
 }
 
-const updateOrderStatus = async (req, res, next) => {
+const updateOrderStatus = async (req,res,next) => {
   try {
     const { status } = req.body
     const orderId = req.params.id
@@ -47,14 +47,14 @@ const updateOrderStatus = async (req, res, next) => {
           for (const item of items) {
             await db.query(
               'UPDATE products SET stock = stock + ? WHERE id = ?',
-              [item.quantity, item.product_id]
+              [item.quantity,item.product_id]
             )
           }
         }
       }
     }
 
-    const result = await updateStatus(orderId, status)
+    const result = await updateStatus(orderId,status)
     res.json({ message: 'อัปเดตสถานะสำเร็จ', data: result })
   } catch (error) {
     console.error("Update Status Error:", error)
@@ -62,7 +62,7 @@ const updateOrderStatus = async (req, res, next) => {
   }
 }
 
-const getItems = async (req, res, next) => {
+const getItems = async (req,res,next) => {
   try {
     const items = await findItemsByOrderId(req.params.id)
     res.json(items)
